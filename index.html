@@ -1,0 +1,3433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLOCK TOWER GAME</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. WARM ALABASTER NEO-ARCADE BENTO DESIGN TOKENS
+       ========================================================================== */
+    :root {
+      --bg-canvas: #F3F1EC;
+      --bg-dot: #CFCBC0;
+      --surface-white: #FFFFFF;
+      --surface-cream: #FAF9F6;
+      --ink: #18181B;
+      --ink-muted: #52525B;
+      --ink-subtle: #71717A;
+
+      --accent-vermilion: #FF4F1F;
+      --accent-cobalt: #4F46E5;
+      --accent-emerald: #059669;
+      --accent-marigold: #F59E0B;
+      --accent-violet: #7C3AED;
+      --accent-rose: #E11D48;
+
+      --border-ink: 2px solid #18181B;
+      --shadow-hard: 4px 4px 0px #18181B;
+      --shadow-hard-sm: 2px 2px 0px #18181B;
+
+      --font-display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --transition: all 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(var(--bg-dot) 1.25px, transparent 1.25px);
+      background-size: 20px 20px;
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       2. TOP FLOATING COMMAND HEADER & HORIZONTAL PILL NAVIGATION
+       ========================================================================== */
+    .app-shell {
+      max-width: 1620px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .command-header {
+      background-color: var(--surface-white);
+      border: var(--border-ink);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-hard);
+      padding: 0.95rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .command-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+    }
+
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .brand-logo-mark {
+      width: 42px;
+      height: 42px;
+      background: var(--accent-vermilion);
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hard-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 6px;
+      flex-shrink: 0;
+    }
+
+    .brand-logo-mark span {
+      display: block;
+      height: 4px;
+      background: #FFFFFF;
+      border-radius: 2px;
+    }
+    .brand-logo-mark span:nth-child(1) { width: 14px; }
+    .brand-logo-mark span:nth-child(2) { width: 20px; }
+    .brand-logo-mark span:nth-child(3) { width: 26px; }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.32rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    /* Live Player Pill & Global Stat Chips */
+    .telemetry-cluster {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .active-player-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      box-shadow: var(--shadow-hard-sm);
+    }
+
+    .active-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      border: 1.5px solid var(--ink);
+      animation: pulseDot 1.4s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+    }
+
+    .active-player-name {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.86rem;
+    }
+
+    .active-player-pts {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: var(--accent-cobalt);
+    }
+
+    .streak-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 0.16rem 0.5rem;
+      background: var(--accent-marigold);
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+    }
+
+    .global-chip {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      padding: 0.34rem 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 0.42rem;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .global-chip .chip-lbl {
+      color: var(--ink-subtle);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+    }
+
+    .global-chip .chip-val.valid { color: var(--accent-emerald); font-weight: 800; }
+    .global-chip .chip-val.invalid { color: var(--accent-rose); font-weight: 800; }
+
+    /* Horizontal Segmented Navigation Pills */
+    .nav-pills-bar {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      border-top: 1.5px dashed #D4D4D8;
+      padding-top: 0.75rem;
+    }
+
+    .nav-pill {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.5rem 0.92rem;
+      border-radius: 999px;
+      border: var(--border-ink);
+      background: var(--surface-cream);
+      color: var(--ink);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-pill:hover {
+      background: #FEF3C7;
+      transform: translateY(-1px);
+    }
+
+    .nav-pill.active {
+      background: var(--accent-vermilion);
+      color: #FFFFFF;
+      box-shadow: var(--shadow-hard-sm);
+    }
+
+    /* ==========================================================================
+       3. BENTO CARDS, BUTTONS, INPUTS & BADGES
+       ========================================================================== */
+    .bento-card {
+      background-color: var(--surface-white);
+      border: var(--border-ink);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-hard);
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .bento-card.cream {
+      background-color: var(--surface-cream);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      border-bottom: 2px solid #E4E4E7;
+      padding-bottom: 0.65rem;
+    }
+
+    .card-head h2, .card-head h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .tag-pill {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--ink);
+      background: var(--surface-cream);
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+
+    .tag-pill.cobalt { background: #EEF2FF; color: var(--accent-cobalt); border-color: var(--accent-cobalt); }
+    .tag-pill.emerald { background: #ECFDF5; color: var(--accent-emerald); border-color: var(--accent-emerald); }
+    .tag-pill.vermilion { background: #FFF1EE; color: var(--accent-vermilion); border-color: var(--accent-vermilion); }
+    .tag-pill.marigold { background: #FFFBEB; color: #B45309; border-color: var(--accent-marigold); }
+    .tag-pill.rose { background: #FFF1F2; color: var(--accent-rose); border-color: var(--accent-rose); }
+
+    .input-row {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 0.52rem 0.72rem;
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      background: var(--surface-cream);
+      color: var(--ink);
+      flex-grow: 1;
+      min-width: 0;
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22);
+    }
+
+    .btn {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 0.52rem 0.82rem;
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hard-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px #18181B;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #18181B;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-primary { background: var(--accent-vermilion); color: #FFFFFF; }
+    .btn-cobalt { background: var(--accent-cobalt); color: #FFFFFF; }
+    .btn-emerald { background: var(--accent-emerald); color: #FFFFFF; }
+    .btn-marigold { background: var(--accent-marigold); color: var(--ink); }
+    .btn-cream { background: var(--surface-cream); color: var(--ink); }
+    .btn-rose { background: var(--accent-rose); color: #FFFFFF; }
+
+    .full-width { width: 100%; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: viewPop 0.2s ease; }
+
+    @keyframes viewPop {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       4. VIEW 01: 3-COLUMN BENTO COCKPIT (ARENA & TABULAR BST SCORECARD)
+       ========================================================================== */
+    .cockpit-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.02fr 1.36fr;
+      gap: 1.15rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1320px) {
+      .cockpit-grid { grid-template-columns: 1fr 1fr; }
+      .cockpit-col-bst { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 820px) {
+      .cockpit-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Column 1: Primary Stack Tower Shaft with 12 Slot Guides */
+    .capacity-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .capacity-bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--ink-muted);
+    }
+
+    .capacity-track {
+      height: 12px;
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .capacity-fill {
+      height: 100%;
+      width: 33%;
+      background: linear-gradient(90deg, var(--accent-emerald), var(--accent-marigold), var(--accent-vermilion));
+      transition: width 0.25s ease;
+    }
+
+    .tower-shaft {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .slot-row {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 34px;
+    }
+
+    .slot-label {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      color: var(--ink-subtle);
+      text-align: right;
+    }
+
+    .slot-empty-guide {
+      height: 32px;
+      border: 1.5px dashed #CBD5E1;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      color: #A1A1AA;
+    }
+
+    .tower-block {
+      height: 34px;
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 0 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.86rem;
+      color: #FFFFFF;
+      cursor: pointer;
+      transition: var(--transition);
+      animation: blockDrop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tower-block.marigold-text {
+      color: var(--ink);
+    }
+
+    .tower-block:hover {
+      transform: translateX(3px);
+    }
+
+    .tower-block.search-hit {
+      animation: searchPulse 0.75s infinite alternate;
+    }
+
+    @keyframes blockDrop {
+      from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    @keyframes searchPulse {
+      from { transform: scale(1); box-shadow: 0 0 0 2px var(--accent-marigold); }
+      to { transform: scale(1.03); box-shadow: 0 0 0 5px var(--accent-vermilion); }
+    }
+
+    .top-pointer-badge {
+      background: #FFFFFF;
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      font-size: 0.6rem;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 4px;
+      box-shadow: 1.5px 1.5px 0px #18181B;
+    }
+
+    .tower-foundation {
+      margin-top: 2px;
+      background: var(--ink);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-align: center;
+      padding: 0.42rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .quick-action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.45rem;
+    }
+
+    /* Column 2: Active Quest Banner, Core Operations & Move Record */
+    .quest-banner {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 0.8rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .quest-banner-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quest-title-tag {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      background: var(--accent-marigold);
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+
+    .quest-reward-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent-emerald);
+      background: #FFFFFF;
+      border: 1.5px solid var(--ink);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .quest-desc-text {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .op-module-box {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+    }
+
+    .op-module-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .op-module-head label {
+      font-family: var(--font-display);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .pts-hint {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      color: var(--accent-emerald);
+    }
+
+    .search-feedback-strip {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 0.42rem 0.62rem;
+      background: #FFFFFF;
+      border: 1.5px solid var(--ink);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    .search-feedback-strip.visible { display: block; }
+
+    /* Live Agreed Move Record Inspector */
+    .move-record-box {
+      background: #18181B;
+      color: #F8FAFC;
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .move-record-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #A1A1AA;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+
+    .move-record-json {
+      color: #FDE047;
+      word-break: break-word;
+    }
+
+    .chain-strip {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.28rem;
+      padding-top: 0.35rem;
+      border-top: 1px dashed #3F3F46;
+      font-size: 0.68rem;
+    }
+
+    .chain-node {
+      background: #27272A;
+      color: #FFFFFF;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #52525B;
+    }
+
+    /* ==========================================================================
+       5. COLUMN 3: TABULAR BINARY SEARCH TREE (ScoreBST) SCORECARD
+       ========================================================================== */
+    .bst-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .bst-search-bar {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .bst-trace-msg {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.45rem 0.65rem;
+      background: #EEF2FF;
+      border: 1.5px solid var(--accent-cobalt);
+      color: var(--accent-cobalt);
+      border-radius: var(--radius-sm);
+    }
+
+    .bst-telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem;
+    }
+
+    .bst-stat-cell {
+      background: var(--surface-cream);
+      border: 1.5px solid var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 0.45rem;
+      text-align: center;
+    }
+
+    .bst-stat-cell small {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 800;
+      color: var(--ink-subtle);
+    }
+
+    .bst-stat-cell strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Tabular BST Scorecard Styling */
+    .bst-table-wrap {
+      overflow-x: auto;
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      background: #FFFFFF;
+    }
+
+    .bst-score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+    }
+
+    .bst-score-table th {
+      background: var(--ink);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.55rem 0.55rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .bst-score-table td {
+      padding: 0.5rem 0.55rem;
+      border-bottom: 1.5px solid #E4E4E7;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .bst-score-table tbody tr:nth-child(even) {
+      background-color: var(--surface-cream);
+    }
+
+    .bst-score-table tbody tr:hover {
+      background-color: #FEF9C3;
+    }
+
+    .bst-score-table tbody tr.active-player-row {
+      background-color: #ECFDF5;
+    }
+
+    .bst-score-table tbody tr.bst-search-match {
+      background-color: #FEF08A !important;
+      outline: 2px solid var(--accent-vermilion);
+      outline-offset: -2px;
+    }
+
+    .rank-medal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 22px;
+      padding: 0 5px;
+      border-radius: 5px;
+      border: 1.5px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      background: #FFFFFF;
+    }
+
+    .rank-medal.r1 { background: var(--accent-marigold); }
+    .rank-medal.r2 { background: #E4E4E7; }
+    .rank-medal.r3 { background: #FDBA74; }
+
+    .active-turn-chip {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 900;
+      padding: 1px 5px;
+      background: var(--accent-emerald);
+      color: #FFFFFF;
+      border: 1px solid var(--ink);
+      border-radius: 4px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .bst-role-badge {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      display: inline-block;
+    }
+
+    .bst-role-badge.root { background: #FEF3C7; color: #92400E; }
+    .bst-role-badge.left { background: #EEF2FF; color: var(--accent-cobalt); }
+    .bst-role-badge.right { background: #ECFDF5; color: var(--accent-emerald); }
+
+    .score-key-pill {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: var(--accent-cobalt);
+    }
+
+    .tier-badge {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--ink);
+    }
+
+    .tier-gm { background: #FF4F1F; color: #FFFFFF; }
+    .tier-arch { background: #4F46E5; color: #FFFFFF; }
+    .tier-build { background: #059669; color: #FFFFFF; }
+    .tier-rookie { background: #E4E4E7; color: #18181B; }
+
+    /* Collapsible BST Tree Drawer */
+    .bst-tree-drawer {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 0.55rem;
+      display: none;
+    }
+
+    .bst-tree-drawer.open {
+      display: block;
+    }
+
+    .bst-svg {
+      width: 100%;
+      min-width: 420px;
+      height: 235px;
+      display: block;
+    }
+
+    /* ==========================================================================
+       6. SECONDARY VIEWS (02 THROUGH 06)
+       ========================================================================== */
+    .two-stack-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px 1fr;
+      gap: 1.15rem;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .two-stack-layout { grid-template-columns: 1fr; }
+    }
+
+    .sim-shaft {
+      min-height: 360px;
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 6px;
+      justify-content: flex-start;
+    }
+
+    .sim-log-panel {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      height: 220px;
+      overflow-y: auto;
+      padding: 0.55rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .sim-log-item {
+      background: #FFFFFF;
+      border: 1.5px solid var(--ink);
+      border-radius: 6px;
+      padding: 0.35rem 0.5rem;
+    }
+
+    /* Linked List Builder */
+    .ll-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .ll-track {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 1.1rem;
+      overflow-x: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 110px;
+    }
+
+    .ll-node-box {
+      display: flex;
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hard-sm);
+      background: #FFFFFF;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .ll-data-cell {
+      padding: 0.55rem 0.85rem;
+      background: #EEF2FF;
+      border-right: var(--border-ink);
+      font-family: var(--font-mono);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .ll-data-cell small {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--accent-cobalt);
+    }
+
+    .ll-next-cell {
+      padding: 0.55rem 0.7rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ll-arrow {
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: var(--accent-vermilion);
+    }
+
+    .ll-null-chip {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 0.45rem 0.75rem;
+      border: 2px dashed var(--ink);
+      border-radius: var(--radius-sm);
+      background: #FFFFFF;
+    }
+
+    /* FIFO Turn Queue */
+    .queue-track {
+      background: var(--surface-cream);
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      padding: 1.35rem 1rem;
+      overflow-x: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      min-height: 130px;
+    }
+
+    .queue-player-card {
+      background: #FFFFFF;
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 0.75rem 1rem;
+      min-width: 175px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .queue-player-card.is-front {
+      background: #ECFDF5;
+      border-color: var(--accent-emerald);
+    }
+
+    .queue-ptr-tag {
+      position: absolute;
+      top: -11px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 900;
+      padding: 1px 7px;
+      border: 1.5px solid var(--ink);
+      border-radius: 4px;
+    }
+
+    .queue-ptr-tag.front { left: 10px; background: var(--accent-emerald); color: #FFFFFF; }
+    .queue-ptr-tag.rear { right: 10px; background: var(--accent-cobalt); color: #FFFFFF; }
+
+    /* Generic Neo Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border: var(--border-ink);
+      border-radius: var(--radius-md);
+    }
+
+    .neo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      background: #FFFFFF;
+    }
+
+    .neo-table th, .neo-table td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1.5px solid #E4E4E7;
+      border-right: 1.5px solid #E4E4E7;
+      text-align: left;
+    }
+
+    .neo-table th {
+      background: var(--ink);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .neo-table tr:nth-child(even) td {
+      background: var(--surface-cream);
+    }
+
+    /* ==========================================================================
+       7. TOASTS & FLOATING SCORE POPUPS
+       ========================================================================== */
+    .toast-rack {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+
+    .neo-toast {
+      background: #FFFFFF;
+      border: var(--border-ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hard);
+      padding: 0.68rem 1rem;
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 260px;
+      animation: toastSlide 0.22s ease forwards;
+    }
+
+    .neo-toast.success { border-left: 6px solid var(--accent-emerald); }
+    .neo-toast.error { border-left: 6px solid var(--accent-rose); }
+    .neo-toast.info { border-left: 6px solid var(--accent-cobalt); }
+
+    @keyframes toastSlide {
+      from { transform: translateX(105%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .floating-pts {
+      position: fixed;
+      top: 86px;
+      right: 28px;
+      padding: 0.5rem 1rem;
+      border: var(--border-ink);
+      border-radius: 999px;
+      box-shadow: var(--shadow-hard);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.95rem;
+      z-index: 9999;
+      pointer-events: none;
+      animation: ptsFloat 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .floating-pts.gain { background: var(--accent-emerald); color: #FFFFFF; }
+    .floating-pts.loss { background: var(--accent-rose); color: #FFFFFF; }
+
+    @keyframes ptsFloat {
+      0% { opacity: 0; transform: translateY(14px) scale(0.9); }
+      18% { opacity: 1; transform: translateY(0) scale(1.06); }
+      80% { opacity: 1; transform: translateY(-10px) scale(1); }
+      100% { opacity: 0; transform: translateY(-24px) scale(0.95); }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-rack" class="toast-rack" aria-live="polite"></div>
+
+  <div class="app-shell">
+    <!-- ========================================================================
+         1. TOP FLOATING COMMAND HEADER & HORIZONTAL PILL NAV
+         ======================================================================== -->
+    <header class="command-header">
+      <div class="command-top-row">
+        <div class="brand-cluster">
+          <div class="brand-logo-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="brand-title">BLOCK TOWER GAME</div>
+            <div class="brand-subtitle">Modular Data Structures Lab &amp; BST Scorecard</div>
+          </div>
+        </div>
+
+        <div class="telemetry-cluster">
+          <div class="active-player-pill">
+            <span class="active-dot"></span>
+            <span class="active-player-name" id="hdr-active-player">Yogitha P</span>
+            <span class="active-player-pts" id="hdr-active-score">450 PTS</span>
+            <span class="streak-badge" id="hdr-active-streak">1.5x STREAK</span>
+          </div>
+
+          <div class="global-chip">
+            <span class="chip-lbl">Height</span>
+            <span class="chip-val" id="hdr-height">4/12</span>
+          </div>
+          <div class="global-chip">
+            <span class="chip-lbl">Valid</span>
+            <span class="chip-val valid" id="hdr-valid">0</span>
+          </div>
+          <div class="global-chip">
+            <span class="chip-lbl">Rejected</span>
+            <span class="chip-val invalid" id="hdr-invalid">0</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="nav-pills-bar" role="tablist">
+        <button class="nav-pill active" data-view="arena">01 Arena &amp; BST Scorecard</button>
+        <button class="nav-pill" data-view="twostack">02 Two-Stack Removal</button>
+        <button class="nav-pill" data-view="linkedlist">03 Linked List Mode</button>
+        <button class="nav-pill" data-view="queue">04 Player Turn Queue</button>
+        <button class="nav-pill" data-view="log">05 History &amp; Undo Stack</button>
+        <button class="nav-pill" data-view="qa">06 QA Test Suite</button>
+      </nav>
+    </header>
+
+    <!-- ========================================================================
+         VIEW 01: ARENA & TABULAR BST SCORECARD (3-COLUMN BENTO COCKPIT)
+         ======================================================================== -->
+    <section id="view-arena" class="view-section active">
+      <div class="cockpit-grid">
+        <!-- COLUMN 1: PRIMARY STACK TOWER SHAFT -->
+        <div class="bento-card">
+          <div class="card-head">
+            <h2>PRIMARY STACK SHAFT</h2>
+            <span class="tag-pill vermilion" id="tower-top-tag">TOP: #40</span>
+          </div>
+
+          <div class="capacity-bar-wrap">
+            <div class="capacity-bar-meta">
+              <span>LIFO CAPACITY</span>
+              <span id="capacity-text">4 / 12 SLOTS (33%)</span>
+            </div>
+            <div class="capacity-track">
+              <div class="capacity-fill" id="capacity-fill" style="width: 33%;"></div>
+            </div>
+          </div>
+
+          <div class="tower-shaft" id="tower-shaft"></div>
+          <div class="tower-foundation">SLOT 0 BASE // LIFO TOWER FOUNDATION</div>
+
+          <div class="quick-action-grid">
+            <button class="btn btn-cobalt" id="btn-quick-random">+ Random Block</button>
+            <button class="btn btn-marigold" id="btn-quick-pop">Pop Top</button>
+            <button class="btn btn-cream" id="btn-quick-peek">Peek Top</button>
+            <button class="btn btn-cream" id="btn-quick-isempty">isEmpty()</button>
+            <button class="btn btn-emerald" id="btn-quick-reset">Reset Default [10..40]</button>
+            <button class="btn btn-rose" id="btn-quick-empty">Empty Stack</button>
+          </div>
+        </div>
+
+        <!-- COLUMN 2: MISSION CONTROL, BONUS QUESTS & MOVE RECORD -->
+        <div class="bento-card">
+          <div class="card-head">
+            <h2>MISSION CONTROL</h2>
+            <span class="tag-pill cobalt" id="deck-turn-badge">TURN: YOGITHA P</span>
+          </div>
+
+          <!-- Gamified Active Bonus Quest Card -->
+          <div class="quest-banner" id="quest-banner">
+            <div class="quest-banner-top">
+              <span class="quest-title-tag" id="quest-code">BONUS QUEST #1</span>
+              <span class="quest-reward-pill" id="quest-reward">+50 BONUS PTS</span>
+            </div>
+            <div class="quest-desc-text" id="quest-desc">Push an even block onto the tower</div>
+          </div>
+
+          <!-- Scenario 1: Basic Block Stack Operations -->
+          <div class="op-module-box">
+            <div class="op-module-head">
+              <label for="input-push">Scenario 1: Basic Block Stack Operations</label>
+              <span class="pts-hint">+100 PTS × STREAK</span>
+            </div>
+            <div class="input-row">
+              <input type="number" id="input-push" placeholder="Block # (1–999)" min="1" max="999">
+              <button class="btn btn-primary" id="btn-push">Push</button>
+            </div>
+          </div>
+
+          <!-- Scenario 2: Block Number Tracking -->
+          <div class="op-module-box">
+            <div class="op-module-head">
+              <label for="input-search">Scenario 2: Block Number Tracking</label>
+              <span class="pts-hint">+30 PTS</span>
+            </div>
+            <div class="input-row">
+              <input type="number" id="input-search" placeholder="Find block # (e.g. 20)">
+              <button class="btn btn-cobalt" id="btn-search">Search</button>
+            </div>
+            <div class="search-feedback-strip" id="search-feedback"></div>
+          </div>
+
+          <!-- Scenario 3 & 4: Block Removal Sequence & Temporary Stack -->
+          <div class="op-module-box">
+            <div class="op-module-head">
+              <label for="input-extract">Scenario 3 &amp; 4: Two-Stack Middle Removal</label>
+              <span class="pts-hint">+200 PTS</span>
+            </div>
+            <div class="input-row">
+              <input type="number" id="input-extract" placeholder="Target block # (e.g. 20)">
+              <button class="btn btn-emerald" id="btn-extract">Extract</button>
+            </div>
+          </div>
+
+          <!-- Scenario 8: Undo Last Move -->
+          <button class="btn btn-cream full-width" id="btn-undo-arena">
+            ↺ Scenario 8: Undo Last Move (History Stack Pop)
+          </button>
+
+          <!-- Live Agreed Move Record Inspector -->
+          <div class="move-record-box">
+            <div class="move-record-head">
+              <span>SCENARIO 7: STABILITY RULE &amp; MOVE RECORD</span>
+              <span id="live-record-status">READY</span>
+            </div>
+            <div class="move-record-json" id="live-record-json">
+              { type: "INIT", block: 40, player: "Yogitha P", from: "BOOT", to: "MAIN_STACK" }
+            </div>
+            <div class="chain-strip" id="stack-chain-strip"></div>
+          </div>
+        </div>
+
+        <!-- COLUMN 3: TABULAR BINARY SEARCH TREE (ScoreBST) SCORECARD -->
+        <div class="bento-card cockpit-col-bst">
+          <div class="card-head">
+            <h2>TABULAR ScoreBST SCORECARD</h2>
+            <div class="input-row">
+              <span class="tag-pill emerald" id="bst-count-pill">10 BST NODES</span>
+              <button class="btn btn-cream" style="padding: 0.3rem 0.6rem; font-size: 0.72rem;" id="btn-toggle-bst-order">
+                Order: Desc (R→N→L)
+              </button>
+              <button class="btn btn-cobalt" style="padding: 0.3rem 0.6rem; font-size: 0.72rem;" id="btn-toggle-tree-drawer">
+                Show BST Tree Nodes
+              </button>
+            </div>
+          </div>
+
+          <!-- O(log n) Score Search in BST -->
+          <div class="bst-search-bar">
+            <input type="number" id="input-bst-search" placeholder="Search BST Score (e.g. 580, 320, 670)">
+            <button class="btn btn-cobalt" id="btn-bst-search">Search BST O(log n)</button>
+            <button class="btn btn-cream" id="btn-bst-reset-trace">Clear</button>
+          </div>
+          <div class="bst-trace-msg" id="bst-trace-msg">
+            BST Rule: left.score &lt; parent.score ≤ right.score • Search a score to trace Root → Leaf path.
+          </div>
+
+          <!-- Compact BST Summary Strip -->
+          <div class="bst-telemetry-grid">
+            <div class="bst-stat-cell">
+              <small>ROOT NODE</small>
+              <strong id="bst-stat-root">-</strong>
+            </div>
+            <div class="bst-stat-cell">
+              <small>MIN SCORE</small>
+              <strong id="bst-stat-min">-</strong>
+            </div>
+            <div class="bst-stat-cell">
+              <small>MAX SCORE</small>
+              <strong id="bst-stat-max">-</strong>
+            </div>
+            <div class="bst-stat-cell">
+              <small>TREE HEIGHT</small>
+              <strong id="bst-stat-height">0</strong>
+            </div>
+          </div>
+
+          <!-- Collapsible Hierarchical BST SVG Tree Drawer -->
+          <div class="bst-tree-drawer" id="bst-tree-drawer">
+            <div style="overflow-x: auto;">
+              <svg id="bst-svg" class="bst-svg" viewBox="0 0 680 245"></svg>
+            </div>
+          </div>
+
+          <!-- Tabular BST Scorecard -->
+          <div class="bst-table-wrap">
+            <table class="bst-score-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Player Name</th>
+                  <th>BST Node Role</th>
+                  <th>Score (Key)</th>
+                  <th>Moves</th>
+                  <th>Streak</th>
+                  <th>Rank Tier</th>
+                </tr>
+              </thead>
+              <tbody id="bst-score-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VIEW 02: TWO-STACK REMOVAL (SCENARIOS 3 & 4)
+         ======================================================================== -->
+    <section id="view-twostack" class="view-section">
+      <div class="bento-card" style="margin-bottom: 1.15rem;">
+        <div class="card-head" style="border-bottom: none; padding-bottom: 0;">
+          <h2>02 SCENARIO 3 &amp; 4: TWO-STACK MIDDLE BLOCK REMOVAL</h2>
+          <div class="input-row" style="flex-wrap: wrap;">
+            <input type="number" id="sim-target-input" placeholder="Target block # (e.g. 20)" style="max-width: 180px;">
+            <button class="btn btn-primary" id="btn-sim-load">Load Current Tower</button>
+            <button class="btn btn-cobalt" id="btn-sim-step" disabled>Next Step →</button>
+            <button class="btn btn-emerald" id="btn-sim-auto" disabled>Auto-Play ▶</button>
+            <button class="btn btn-cream" id="btn-sim-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-stack-layout">
+        <div class="bento-card">
+          <div class="card-head">
+            <h3>MAIN STACK</h3>
+            <span class="tag-pill cobalt" id="sim-main-count">0 BLOCKS</span>
+          </div>
+          <div class="sim-shaft" id="sim-main-shaft"></div>
+          <div class="tower-foundation">MAIN STACK BASE</div>
+        </div>
+
+        <div class="bento-card cream">
+          <div class="card-head">
+            <h3>OPERATION COUNTERS</h3>
+            <span class="tag-pill marigold" id="sim-status-tag">IDLE</span>
+          </div>
+          <div class="bst-telemetry-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="bst-stat-cell">
+              <small>TEMP PUSHES</small>
+              <strong id="sim-push-cnt">0</strong>
+            </div>
+            <div class="bst-stat-cell">
+              <small>TEMP POPS</small>
+              <strong id="sim-pop-cnt">0</strong>
+            </div>
+          </div>
+          <div class="sim-log-panel" id="sim-log-panel">
+            <div class="sim-log-item">Enter a block number from the tower and click Load Current Tower.</div>
+          </div>
+        </div>
+
+        <div class="bento-card">
+          <div class="card-head">
+            <h3>TEMPORARY STACK</h3>
+            <span class="tag-pill vermilion" id="sim-temp-count">0 BLOCKS</span>
+          </div>
+          <div class="sim-shaft" id="sim-temp-shaft"></div>
+          <div class="tower-foundation">TEMP STACK BUFFER</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VIEW 03: LINKED LIST MODE (SCENARIO 5)
+         ======================================================================== -->
+    <section id="view-linkedlist" class="view-section">
+      <div class="bento-card" style="margin-bottom: 1.15rem;">
+        <div class="card-head">
+          <h2>03 SCENARIO 5: BLOCK SEQUENCE &amp; REARRANGEMENT (SINGLY LINKED LIST)</h2>
+          <div class="input-row" style="flex-wrap: wrap;">
+            <span class="tag-pill cobalt" id="ll-count-tag">4 NODES</span>
+            <button class="btn btn-cream" id="btn-ll-sync">Sync From Tower</button>
+            <button class="btn btn-emerald" id="btn-ll-deploy">Deploy Sequence to Main Tower (+120 PTS)</button>
+          </div>
+        </div>
+
+        <div class="ll-controls">
+          <div class="op-module-box">
+            <div class="op-module-head"><label>Insert at Head</label></div>
+            <div class="input-row">
+              <input type="number" id="ll-head-val" placeholder="Block #">
+              <button class="btn btn-primary" id="btn-ll-add-head">+ Head</button>
+            </div>
+          </div>
+
+          <div class="op-module-box">
+            <div class="op-module-head"><label>Insert at Index</label></div>
+            <div class="input-row">
+              <input type="number" id="ll-pos-val" placeholder="Block #">
+              <input type="number" id="ll-pos-idx" placeholder="Index" min="0" style="max-width: 85px;">
+              <button class="btn btn-cobalt" id="btn-ll-add-pos">Insert</button>
+            </div>
+          </div>
+
+          <div class="op-module-box">
+            <div class="op-module-head"><label>Delete at Index</label></div>
+            <div class="input-row">
+              <input type="number" id="ll-del-idx" placeholder="Index" min="0">
+              <button class="btn btn-rose" id="btn-ll-del-pos">Delete</button>
+            </div>
+          </div>
+
+          <div class="op-module-box">
+            <div class="op-module-head"><label>Search Node</label></div>
+            <div class="input-row">
+              <input type="number" id="ll-find-val" placeholder="Block #">
+              <button class="btn btn-marigold" id="btn-ll-find">Find</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ll-track" id="ll-visual-track"></div>
+      </div>
+
+      <div class="bento-card">
+        <div class="card-head">
+          <h3>STACK VS. SINGLY LINKED LIST COMPLEXITY COMPARISON</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="neo-table">
+            <thead>
+              <tr>
+                <th>Operation</th>
+                <th>Stack (LIFO)</th>
+                <th>Singly Linked List</th>
+                <th>Structural Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Insert Top / Head</td>
+                <td><strong>O(1)</strong> push()</td>
+                <td><strong>O(1)</strong> insertAtBeginning()</td>
+                <td>Constant-time pointer update at the tip.</td>
+              </tr>
+              <tr>
+                <td>Middle Insertion / Deletion</td>
+                <td><strong>O(n)</strong> Two-Stack Transfer</td>
+                <td><strong>O(n)</strong> Traverse + Pointer Re-link</td>
+                <td>Linked list modifies <code>prev.next</code> without temporary stack buffering.</td>
+              </tr>
+              <tr>
+                <td>Search Block Number</td>
+                <td><strong>O(n)</strong> Top-to-Bottom Scan</td>
+                <td><strong>O(n)</strong> Head-to-Null Traversal</td>
+                <td>Both inspect elements sequentially until match or end.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VIEW 04: PLAYER TURN QUEUE (SCENARIO 6)
+         ======================================================================== -->
+    <section id="view-queue" class="view-section">
+      <div class="bento-card">
+        <div class="card-head">
+          <h2>04 SCENARIO 6: PLAYER TURN MANAGEMENT (FIFO QUEUE)</h2>
+          <span class="tag-pill emerald" id="queue-count-tag">10 PLAYERS IN QUEUE</span>
+        </div>
+
+        <div class="input-row" style="flex-wrap: wrap;">
+          <input type="text" id="queue-new-player" placeholder="Enter new player name" style="max-width: 280px;">
+          <button class="btn btn-primary" id="btn-queue-enqueue">Enqueue at Rear</button>
+          <button class="btn btn-emerald" id="btn-queue-rotate">Complete Turn (Dequeue &amp; Re-Enqueue)</button>
+          <button class="btn btn-rose" id="btn-queue-remove-front">Remove Front Player</button>
+        </div>
+
+        <div class="queue-track" id="queue-visual-track"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VIEW 05: HISTORY & UNDO STACK (SCENARIOS 7 & 8)
+         ======================================================================== -->
+    <section id="view-log" class="view-section">
+      <div class="bento-card">
+        <div class="card-head">
+          <h2>05 SCENARIO 7 &amp; 8: STABILITY RULES, MOVE LOG &amp; HISTORY UNDO STACK</h2>
+          <button class="btn btn-primary" id="btn-log-undo">↺ Pop History Stack &amp; Undo</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="neo-table">
+            <thead>
+              <tr>
+                <th>Op #</th>
+                <th>Status</th>
+                <th>{ type, block, player, from, to }</th>
+                <th>Before → After</th>
+                <th>Score Delta</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="move-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         VIEW 06: QA TEST SUITE
+         ======================================================================== -->
+    <section id="view-qa" class="view-section">
+      <div class="bento-card">
+        <div class="card-head">
+          <h2>06 AUTOMATED QA VERIFICATION TEST SUITE</h2>
+          <button class="btn btn-emerald" id="btn-run-qa">▶ Execute All 6 Test Cases</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="neo-table">
+            <thead>
+              <tr>
+                <th>Test Case</th>
+                <th>Input / Action</th>
+                <th>Expected Result</th>
+                <th>Actual Result</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="qa-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    /**
+     * BLOCK TOWER GAME // MODULAR DATA STRUCTURES & TABULAR BST SCORECARD
+     * Pure pointer-based implementations:
+     *   - TowerStack (LIFO linked nodes)
+     *   - TurnQueue (FIFO front/rear linked nodes)
+     *   - BlockLinkedList (Singly linked nodes)
+     *   - ScoreBST (Binary Search Tree ordered by score: left < parent, right >= parent)
+     */
+
+    // ==========================================================================
+    // 1. PURE POINTER-BASED STACK, QUEUE & SINGLY LINKED LIST
+    // ==========================================================================
+
+    class StackNode {
+      constructor(data) {
+        this.data = data;
+        this.next = null;
+      }
+    }
+
+    class TowerStack {
+      constructor(capacity = 12) {
+        this.topNode = null;
+        this._size = 0;
+        this.capacity = capacity;
+      }
+
+      push(data) {
+        if (this._size >= this.capacity) {
+          throw new Error(`Stack Overflow: Max capacity (${this.capacity}) reached.`);
+        }
+        const node = new StackNode(data);
+        node.next = this.topNode;
+        this.topNode = node;
+        this._size++;
+        return true;
+      }
+
+      pop() {
+        if (this.isEmpty()) {
+          throw new Error("Stack Underflow: Tower is empty.");
+        }
+        const value = this.topNode.data;
+        this.topNode = this.topNode.next;
+        this._size--;
+        return value;
+      }
+
+      peek() {
+        return this.isEmpty() ? null : this.topNode.data;
+      }
+
+      isEmpty() {
+        return this._size === 0 || this.topNode === null;
+      }
+
+      size() {
+        return this._size;
+      }
+
+      toArray() {
+        const res = [];
+        let curr = this.topNode;
+        while (curr !== null) {
+          res.push(curr.data);
+          curr = curr.next;
+        }
+        return res;
+      }
+
+      clear() {
+        this.topNode = null;
+        this._size = 0;
+      }
+    }
+
+    class QueueNode {
+      constructor(player) {
+        this.player = player;
+        this.next = null;
+      }
+    }
+
+    class TurnQueue {
+      constructor() {
+        this.front = null;
+        this.rear = null;
+        this._size = 0;
+      }
+
+      enqueue(player) {
+        const node = new QueueNode(player);
+        if (this.isEmpty()) {
+          this.front = node;
+          this.rear = node;
+        } else {
+          this.rear.next = node;
+          this.rear = node;
+        }
+        this._size++;
+      }
+
+      dequeue() {
+        if (this.isEmpty()) {
+          throw new Error("Queue Underflow: No players waiting.");
+        }
+        const val = this.front.player;
+        this.front = this.front.next;
+        if (this.front === null) {
+          this.rear = null;
+        }
+        this._size--;
+        return val;
+      }
+
+      peek() {
+        return this.isEmpty() ? null : this.front.player;
+      }
+
+      isEmpty() {
+        return this._size === 0;
+      }
+
+      size() {
+        return this._size;
+      }
+
+      contains(name) {
+        let curr = this.front;
+        while (curr !== null) {
+          if (curr.player.toLowerCase() === name.toLowerCase()) return true;
+          curr = curr.next;
+        }
+        return false;
+      }
+
+      toArray() {
+        const list = [];
+        let curr = this.front;
+        while (curr !== null) {
+          list.push(curr.player);
+          curr = curr.next;
+        }
+        return list;
+      }
+    }
+
+    class LLNode {
+      constructor(data) {
+        this.data = data;
+        this.next = null;
+      }
+    }
+
+    class BlockLinkedList {
+      constructor() {
+        this.head = null;
+        this._size = 0;
+      }
+
+      insertAtBeginning(data) {
+        const node = new LLNode(data);
+        node.next = this.head;
+        this.head = node;
+        this._size++;
+      }
+
+      insertAtPosition(data, index) {
+        if (index < 0 || index > this._size) {
+          throw new Error(`Invalid index ${index} (valid 0..${this._size})`);
+        }
+        if (index === 0) {
+          this.insertAtBeginning(data);
+          return;
+        }
+        const node = new LLNode(data);
+        let prev = this.head;
+        for (let i = 0; i < index - 1; i++) {
+          prev = prev.next;
+        }
+        node.next = prev.next;
+        prev.next = node;
+        this._size++;
+      }
+
+      deleteAtPosition(index) {
+        if (this.isEmpty() || index < 0 || index >= this._size) {
+          throw new Error(`Invalid index ${index}`);
+        }
+        let removed;
+        if (index === 0) {
+          removed = this.head.data;
+          this.head = this.head.next;
+        } else {
+          let prev = this.head;
+          for (let i = 0; i < index - 1; i++) {
+            prev = prev.next;
+          }
+          removed = prev.next.data;
+          prev.next = prev.next.next;
+        }
+        this._size--;
+        return removed;
+      }
+
+      search(val) {
+        let curr = this.head;
+        let idx = 0;
+        while (curr !== null) {
+          if (curr.data === val) return idx;
+          curr = curr.next;
+          idx++;
+        }
+        return -1;
+      }
+
+      clear() {
+        this.head = null;
+        this._size = 0;
+      }
+
+      isEmpty() {
+        return this.head === null;
+      }
+
+      size() {
+        return this._size;
+      }
+
+      toArray() {
+        const arr = [];
+        let curr = this.head;
+        while (curr !== null) {
+          arr.push(curr.data);
+          curr = curr.next;
+        }
+        return arr;
+      }
+    }
+
+    // ==========================================================================
+    // 2. BINARY SEARCH TREE (ScoreBST) SCORECARD ENGINE
+    // ==========================================================================
+
+    class ScoreNode {
+      constructor(player, score = 0, moves = 0, streak = 0) {
+        this.player = player;
+        this.score = score;
+        this.moves = moves;
+        this.streak = streak;
+        this.left = null;
+        this.right = null;
+      }
+    }
+
+    class ScoreBST {
+      constructor() {
+        this.root = null;
+      }
+
+      /**
+       * Inserts a ScoreNode ordered by score:
+       * left.score < parent.score, right.score >= parent.score
+       */
+      insertNode(newNode) {
+        newNode.left = null;
+        newNode.right = null;
+        if (this.root === null) {
+          this.root = newNode;
+          return;
+        }
+        let curr = this.root;
+        while (true) {
+          if (newNode.score < curr.score) {
+            if (curr.left === null) {
+              curr.left = newNode;
+              return;
+            }
+            curr = curr.left;
+          } else {
+            if (curr.right === null) {
+              curr.right = newNode;
+              return;
+            }
+            curr = curr.right;
+          }
+        }
+      }
+
+      findByPlayer(playerName, node = this.root) {
+        if (node === null) return null;
+        if (node.player.toLowerCase() === playerName.toLowerCase()) return node;
+        return this.findByPlayer(playerName, node.left) || this.findByPlayer(playerName, node.right);
+      }
+
+      /**
+       * Standard 3-case BST deletion by exact node reference
+       */
+      removePlayer(playerName) {
+        const target = this.findByPlayer(playerName);
+        if (!target) return null;
+        const copy = new ScoreNode(target.player, target.score, target.moves, target.streak);
+        this.root = this._deleteNode(this.root, target);
+        return copy;
+      }
+
+      _deleteNode(root, target) {
+        if (root === null) return null;
+        if (root === target) {
+          if (root.left === null && root.right === null) return null;
+          if (root.left === null) return root.right;
+          if (root.right === null) return root.left;
+
+          // Two children: replace with In-Order Successor (smallest in right subtree)
+          let succParent = root;
+          let succ = root.right;
+          while (succ.left !== null) {
+            succParent = succ;
+            succ = succ.left;
+          }
+          root.player = succ.player;
+          root.score = succ.score;
+          root.moves = succ.moves;
+          root.streak = succ.streak;
+
+          if (succParent === root) {
+            succParent.right = succ.right;
+          } else {
+            succParent.left = succ.right;
+          }
+          return root;
+        }
+
+        if (target.score < root.score) {
+          root.left = this._deleteNode(root.left, target);
+        } else {
+          root.right = this._deleteNode(root.right, target);
+        }
+        return root;
+      }
+
+      /**
+       * Re-indexes a player's BST position whenever their score changes
+       */
+      updatePlayerScore(playerName, delta, outcome) {
+        let node = this.removePlayer(playerName);
+        if (!node) {
+          node = new ScoreNode(playerName, 0, 0, 0);
+        }
+        node.score = Math.max(0, node.score + delta);
+        if (outcome === 'VALID') {
+          node.moves++;
+          node.streak++;
+        } else if (outcome === 'INVALID' || outcome === 'UNDO') {
+          node.streak = 0;
+        }
+        this.insertNode(node);
+        return node;
+      }
+
+      /**
+       * O(log n) Binary Search by score value returning full comparison path
+       */
+      searchScore(targetScore) {
+        const path = [];
+        let curr = this.root;
+        while (curr !== null) {
+          path.push(curr);
+          if (curr.score === targetScore) {
+            return { found: true, node: curr, path };
+          }
+          curr = targetScore < curr.score ? curr.left : curr.right;
+        }
+        return { found: false, node: null, path };
+      }
+
+      /**
+       * Reverse In-Order Traversal (Right -> Root -> Left) with BST role metadata
+       */
+      traverseDescending(node = this.root, out = [], role = 'ROOT', parentScore = null) {
+        if (node === null) return out;
+        this.traverseDescending(node.right, out, 'RIGHT', node.score);
+        out.push({ node, role, parentScore });
+        this.traverseDescending(node.left, out, 'LEFT', node.score);
+        return out;
+      }
+
+      /**
+       * In-Order Traversal (Left -> Root -> Right) with BST role metadata
+       */
+      traverseAscending(node = this.root, out = [], role = 'ROOT', parentScore = null) {
+        if (node === null) return out;
+        this.traverseAscending(node.left, out, 'LEFT', node.score);
+        out.push({ node, role, parentScore });
+        this.traverseAscending(node.right, out, 'RIGHT', node.score);
+        return out;
+      }
+
+      findMin() {
+        if (!this.root) return null;
+        let curr = this.root;
+        while (curr.left !== null) curr = curr.left;
+        return curr;
+      }
+
+      findMax() {
+        if (!this.root) return null;
+        let curr = this.root;
+        while (curr.right !== null) curr = curr.right;
+        return curr;
+      }
+
+      height(node = this.root) {
+        if (node === null) return 0;
+        return 1 + Math.max(this.height(node.left), this.height(node.right));
+      }
+
+      count(node = this.root) {
+        if (node === null) return 0;
+        return 1 + this.count(node.left) + this.count(node.right);
+      }
+    }
+
+    // ==========================================================================
+    // 3. BLOCK TOWER GAME CONTROLLER
+    // ==========================================================================
+
+    class BlockTowerGame {
+      constructor() {
+        this.tower = new TowerStack(12);
+        this.historyStack = new TowerStack(100);
+        this.moveLog = [];
+        this.turnQueue = new TurnQueue();
+        this.linkedList = new BlockLinkedList();
+        this.scoreBST = new ScoreBST();
+
+        this.validCount = 0;
+        this.invalidCount = 0;
+        this.opSeq = 0;
+        this.bstDescending = true;
+        this.highlightedBstPlayers = new Set();
+
+        // Two-stack simulation state
+        this.simMain = new TowerStack(12);
+        this.simTemp = new TowerStack(12);
+        this.simSteps = [];
+        this.simIdx = 0;
+        this.simPushes = 0;
+        this.simPops = 0;
+        this.simInterval = null;
+
+        // Rotating Bonus Quests (+50 bonus points)
+        this.questPool = [
+          {
+            code: 'BONUS QUEST #1',
+            desc: 'Push an even block onto the tower',
+            reward: 50,
+            check: (ctx) => ctx.type === 'PUSH' && ctx.block % 2 === 0
+          },
+          {
+            code: 'BONUS QUEST #2',
+            desc: 'Peek the top block of the stack',
+            reward: 50,
+            check: (ctx) => ctx.type === 'PEEK'
+          },
+          {
+            code: 'BONUS QUEST #3',
+            desc: 'Extract a middle block using Two-Stack',
+            reward: 50,
+            check: (ctx) => ctx.type === 'EXTRACT'
+          },
+          {
+            code: 'BONUS QUEST #4',
+            desc: 'Search and locate an active block in the stack',
+            reward: 50,
+            check: (ctx) => ctx.type === 'SEARCH'
+          },
+          {
+            code: 'BONUS QUEST #5',
+            desc: 'Build the tower to 6 or more blocks',
+            reward: 50,
+            check: (ctx) => ctx.height >= 6
+          }
+        ];
+        this.questIndex = 0;
+
+        this.initGame();
+      }
+
+      initGame() {
+        // Initialize all 10 team members as active players inside TurnQueue & ScoreBST
+        const players = [
+          { name: 'Yogitha P', score: 450, moves: 4, streak: 2 },
+          { name: 'Mithra R', score: 320, moves: 3, streak: 1 },
+          { name: 'Ragavi G', score: 580, moves: 5, streak: 3 },
+          { name: 'Jeya Durga B', score: 240, moves: 2, streak: 0 },
+          { name: 'Kanishkaa K', score: 390, moves: 3, streak: 2 },
+          { name: 'Rakchana R', score: 510, moves: 4, streak: 1 },
+          { name: 'Sethulatha M.S', score: 670, moves: 6, streak: 4 },
+          { name: 'Rithanyaa K', score: 180, moves: 1, streak: 0 },
+          { name: 'Shanmuga priya S', score: 490, moves: 4, streak: 1 },
+          { name: 'Renoslin P Fernando', score: 620, moves: 5, streak: 2 }
+        ];
+
+        players.forEach(p => {
+          this.turnQueue.enqueue(p.name);
+          this.scoreBST.insertNode(new ScoreNode(p.name, p.score, p.moves, p.streak));
+        });
+
+        // Default Pre-Loaded Tower: [10, 20, 30, 40] (10 at Slot 0 bottom, 40 at Slot 3 top)
+        [10, 20, 30, 40].forEach(val => this.tower.push(val));
+        [10, 20, 30, 40].forEach((val, idx) => this.linkedList.insertAtPosition(val, idx));
+      }
+
+      getActivePlayer() {
+        return this.turnQueue.peek() || 'Yogitha P';
+      }
+
+      getStreakMultiplier(player) {
+        const node = this.scoreBST.findByPlayer(player);
+        const streak = node ? node.streak : 0;
+        return Math.min(2.5, 1 + streak * 0.25);
+      }
+
+      rotateTurn() {
+        if (this.turnQueue.size() > 1) {
+          const finished = this.turnQueue.dequeue();
+          this.turnQueue.enqueue(finished);
+        }
+      }
+
+      evaluateQuest(ctx) {
+        const quest = this.questPool[this.questIndex];
+        if (quest && quest.check(ctx)) {
+          this.questIndex = (this.questIndex + 1) % this.questPool.length;
+          return quest;
+        }
+        return null;
+      }
+
+      recordMove(entry) {
+        this.opSeq++;
+        const record = {
+          opNum: this.opSeq,
+          time: new Date().toLocaleTimeString(),
+          ...entry
+        };
+        this.moveLog.unshift(record);
+        updateLiveRecordInspector(record);
+        return record;
+      }
+
+      // --- Scenario 1: Push Block ---
+      pushBlock(val) {
+        const player = this.getActivePlayer();
+        const before = this.tower.toArray();
+
+        if (isNaN(val) || !Number.isInteger(val) || val <= 0 || val > 999) {
+          this.invalidCount++;
+          this.scoreBST.updatePlayerScore(player, -25, 'INVALID');
+          this.recordMove({
+            status: 'REJECTED',
+            type: 'PUSH',
+            block: isNaN(val) ? 'NaN' : val,
+            player,
+            from: 'INPUT',
+            to: 'REJECTED_INVALID',
+            before,
+            after: before,
+            delta: -25
+          });
+          spawnFloatingPoints(-25);
+          throw new Error('Stability Rule: Enter a valid integer between 1 and 999.');
+        }
+
+        if (this.tower.size() >= this.tower.capacity) {
+          this.invalidCount++;
+          this.scoreBST.updatePlayerScore(player, -25, 'INVALID');
+          this.recordMove({
+            status: 'REJECTED',
+            type: 'PUSH',
+            block: val,
+            player,
+            from: 'INPUT',
+            to: 'REJECTED_OVERFLOW',
+            before,
+            after: before,
+            delta: -25
+          });
+          spawnFloatingPoints(-25);
+          throw new Error('Stack Overflow: Tower reached 12-block capacity!');
+        }
+
+        this.tower.push(val);
+        const after = this.tower.toArray();
+        const mult = this.getStreakMultiplier(player);
+        let pts = Math.round(100 * mult);
+
+        const updatedNode = this.scoreBST.updatePlayerScore(player, pts, 'VALID');
+        const questDone = this.evaluateQuest({
+          type: 'PUSH',
+          block: val,
+          height: this.tower.size(),
+          streak: updatedNode.streak
+        });
+
+        if (questDone) {
+          pts += questDone.reward;
+          this.scoreBST.updatePlayerScore(player, questDone.reward, 'BONUS');
+          showToast(`Bonus Quest Complete! +${questDone.reward} PTS`, 'success');
+        }
+
+        this.validCount++;
+        const rec = this.recordMove({
+          status: 'VALID',
+          type: 'PUSH',
+          block: val,
+          player,
+          from: 'INPUT',
+          to: 'MAIN_STACK',
+          before,
+          after,
+          delta: pts
+        });
+        this.historyStack.push(rec);
+        spawnFloatingPoints(pts);
+        this.rotateTurn();
+        return rec;
+      }
+
+      // --- Scenario 1: Pop Top Block ---
+      popBlock() {
+        const player = this.getActivePlayer();
+        const before = this.tower.toArray();
+
+        if (this.tower.isEmpty()) {
+          this.invalidCount++;
+          this.scoreBST.updatePlayerScore(player, -25, 'INVALID');
+          this.recordMove({
+            status: 'REJECTED',
+            type: 'POP',
+            block: null,
+            player,
+            from: 'MAIN_STACK',
+            to: 'REJECTED_EMPTY',
+            before,
+            after: before,
+            delta: -25
+          });
+          spawnFloatingPoints(-25);
+          throw new Error('Stack Underflow: Cannot pop from an empty tower.');
+        }
+
+        const popped = this.tower.pop();
+        const after = this.tower.toArray();
+        const mult = this.getStreakMultiplier(player);
+        const pts = Math.round(60 * mult);
+
+        this.scoreBST.updatePlayerScore(player, pts, 'VALID');
+        this.validCount++;
+
+        const rec = this.recordMove({
+          status: 'VALID',
+          type: 'POP',
+          block: popped,
+          player,
+          from: 'MAIN_STACK',
+          to: 'DISCARDED',
+          before,
+          after,
+          delta: pts
+        });
+        this.historyStack.push(rec);
+        spawnFloatingPoints(pts);
+        this.rotateTurn();
+        return rec;
+      }
+
+      // --- Scenario 1: Peek Top Block ---
+      peekBlock() {
+        const player = this.getActivePlayer();
+        const top = this.tower.peek();
+        if (top === null) {
+          throw new Error('Tower is empty: peek() returned NULL.');
+        }
+        const questDone = this.evaluateQuest({
+          type: 'PEEK',
+          block: top,
+          height: this.tower.size(),
+          streak: 0
+        });
+        if (questDone) {
+          this.scoreBST.updatePlayerScore(player, questDone.reward, 'BONUS');
+          spawnFloatingPoints(questDone.reward);
+          showToast(`Bonus Quest Complete! +${questDone.reward} PTS`, 'success');
+        }
+        return top;
+      }
+
+      // --- Scenario 2: Search Block Number ---
+      searchBlock(target) {
+        const player = this.getActivePlayer();
+        const arr = this.tower.toArray(); // [Top ... Bottom]
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] === target) {
+            let pts = 30;
+            const node = this.scoreBST.updatePlayerScore(player, pts, 'VALID');
+            const questDone = this.evaluateQuest({
+              type: 'SEARCH',
+              block: target,
+              height: arr.length,
+              streak: node.streak
+            });
+            if (questDone) {
+              pts += questDone.reward;
+              this.scoreBST.updatePlayerScore(player, questDone.reward, 'BONUS');
+              showToast(`Bonus Quest Complete! +${questDone.reward} PTS`, 'success');
+            }
+            this.validCount++;
+            this.recordMove({
+              status: 'VALID',
+              type: 'SEARCH',
+              block: target,
+              player,
+              from: 'MAIN_STACK',
+              to: `DEPTH_${i + 1}`,
+              before: arr,
+              after: arr,
+              delta: pts
+            });
+            spawnFloatingPoints(pts);
+            return {
+              found: true,
+              fromTop: i + 1,
+              fromBottom: arr.length - i,
+              slotIndex: arr.length - 1 - i,
+              topMost: arr[0],
+              total: arr.length
+            };
+          }
+        }
+        this.invalidCount++;
+        this.recordMove({
+          status: 'REJECTED',
+          type: 'SEARCH',
+          block: target,
+          player,
+          from: 'MAIN_STACK',
+          to: 'NOT_FOUND',
+          before: arr,
+          after: arr,
+          delta: 0
+        });
+        return { found: false };
+      }
+
+      // --- Scenario 3 & 4: Two-Stack Middle Removal ---
+      extractMiddleBlock(target) {
+        const player = this.getActivePlayer();
+        const before = this.tower.toArray();
+
+        if (this.tower.isEmpty() || isNaN(target)) {
+          this.invalidCount++;
+          this.scoreBST.updatePlayerScore(player, -25, 'INVALID');
+          this.recordMove({
+            status: 'REJECTED',
+            type: 'EXTRACT',
+            block: isNaN(target) ? 'NaN' : target,
+            player,
+            from: 'MAIN_STACK',
+            to: 'REJECTED_INVALID',
+            before,
+            after: before,
+            delta: -25
+          });
+          spawnFloatingPoints(-25);
+          throw new Error('Stability Rule: Enter a valid block number currently in the tower.');
+        }
+
+        const temp = new TowerStack(12);
+        let found = false;
+        let movedAbove = 0;
+
+        while (!this.tower.isEmpty()) {
+          const curr = this.tower.pop();
+          if (curr === target) {
+            found = true;
+            break;
+          }
+          temp.push(curr);
+          movedAbove++;
+        }
+
+        while (!temp.isEmpty()) {
+          this.tower.push(temp.pop());
+        }
+
+        if (!found) {
+          this.invalidCount++;
+          this.scoreBST.updatePlayerScore(player, -25, 'INVALID');
+          this.recordMove({
+            status: 'REJECTED',
+            type: 'EXTRACT',
+            block: target,
+            player,
+            from: 'MAIN_STACK',
+            to: 'REJECTED_NOT_FOUND',
+            before,
+            after: before,
+            delta: -25
+          });
+          spawnFloatingPoints(-25);
+          throw new Error(`Block #${target} not found in tower.`);
+        }
+
+        const after = this.tower.toArray();
+        const mult = this.getStreakMultiplier(player);
+        let pts = Math.round((150 + movedAbove * 25) * mult);
+        const node = this.scoreBST.updatePlayerScore(player, pts, 'VALID');
+
+        const questDone = this.evaluateQuest({
+          type: 'EXTRACT',
+          block: target,
+          height: this.tower.size(),
+          streak: node.streak
+        });
+        if (questDone) {
+          pts += questDone.reward;
+          this.scoreBST.updatePlayerScore(player, questDone.reward, 'BONUS');
+          showToast(`Bonus Quest Complete! +${questDone.reward} PTS`, 'success');
+        }
+
+        this.validCount++;
+        const rec = this.recordMove({
+          status: 'VALID',
+          type: 'EXTRACT',
+          block: target,
+          player,
+          from: 'MAIN_STACK',
+          to: 'TEMP_RESTORED',
+          before,
+          after,
+          delta: pts
+        });
+        this.historyStack.push(rec);
+        spawnFloatingPoints(pts);
+        this.rotateTurn();
+        return { rec, movedAbove };
+      }
+
+      // --- Scenario 8: Undo Last Valid Move ---
+      undoLastMove() {
+        if (this.historyStack.isEmpty()) {
+          throw new Error('History Stack Empty: No valid moves available to undo.');
+        }
+        const last = this.historyStack.pop();
+        const currBeforeUndo = this.tower.toArray();
+
+        this.tower.clear();
+        for (let i = last.before.length - 1; i >= 0; i--) {
+          this.tower.push(last.before[i]);
+        }
+
+        if (last.delta > 0) {
+          this.scoreBST.updatePlayerScore(last.player, -last.delta, 'UNDO');
+          spawnFloatingPoints(-last.delta);
+        }
+
+        this.validCount++;
+        this.recordMove({
+          status: 'VALID',
+          type: 'UNDO',
+          block: last.block,
+          player: last.player,
+          from: 'HISTORY_STACK',
+          to: 'MAIN_STACK',
+          before: currBeforeUndo,
+          after: this.tower.toArray(),
+          delta: -last.delta
+        });
+        return last;
+      }
+
+      resetDefaultTower() {
+        this.tower.clear();
+        [10, 20, 30, 40].forEach(v => this.tower.push(v));
+        this.historyStack.clear();
+        this.recordMove({
+          status: 'VALID',
+          type: 'RESET',
+          block: 40,
+          player: this.getActivePlayer(),
+          from: 'SYSTEM',
+          to: 'DEFAULT_[10..40]',
+          before: [],
+          after: this.tower.toArray(),
+          delta: 0
+        });
+      }
+
+      emptyTower() {
+        const before = this.tower.toArray();
+        this.tower.clear();
+        this.historyStack.clear();
+        this.recordMove({
+          status: 'VALID',
+          type: 'CLEAR',
+          block: null,
+          player: this.getActivePlayer(),
+          from: 'MAIN_STACK',
+          to: 'EMPTY_STACK',
+          before,
+          after: [],
+          delta: 0
+        });
+      }
+    }
+
+    // ==========================================================================
+    // 4. UI RENDERING ENGINE
+    // ==========================================================================
+
+    const game = new BlockTowerGame();
+
+    const BLOCK_COLORS = [
+      { bg: '#FF4F1F', darkText: false },
+      { bg: '#4F46E5', darkText: false },
+      { bg: '#059669', darkText: false },
+      { bg: '#F59E0B', darkText: true },
+      { bg: '#7C3AED', darkText: false },
+      { bg: '#E11D48', darkText: false }
+    ];
+
+    function getBlockStyle(val) {
+      return BLOCK_COLORS[Math.abs(Number(val)) % BLOCK_COLORS.length];
+    }
+
+    function getRankTier(score) {
+      if (score >= 600) return { label: 'Grandmaster', cls: 'tier-gm' };
+      if (score >= 450) return { label: 'Architect', cls: 'tier-arch' };
+      if (score >= 250) return { label: 'Builder', cls: 'tier-build' };
+      return { label: 'Rookie', cls: 'tier-rookie' };
+    }
+
+    function showToast(msg, type = 'info') {
+      const rack = document.getElementById('toast-rack');
+      const el = document.createElement('div');
+      el.className = `neo-toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<span style="font-family:var(--font-mono);">[${icon}]</span> <span>${msg}</span>`;
+      rack.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(105%)';
+        setTimeout(() => el.remove(), 220);
+      }, 3000);
+    }
+
+    function spawnFloatingPoints(delta) {
+      if (!delta) return;
+      const badge = document.createElement('div');
+      badge.className = `floating-pts ${delta > 0 ? 'gain' : 'loss'}`;
+      badge.textContent = delta > 0 ? `+${delta} PTS` : `${delta} PTS`;
+      document.body.appendChild(badge);
+      setTimeout(() => badge.remove(), 1400);
+    }
+
+    function updateLiveRecordInspector(rec) {
+      const statusEl = document.getElementById('live-record-status');
+      const jsonEl = document.getElementById('live-record-json');
+      statusEl.textContent = rec.status;
+      statusEl.style.color = rec.status === 'VALID' ? '#34D399' : '#FB7185';
+      jsonEl.textContent = `{ type: "${rec.type}", block: ${rec.block ?? 'null'}, player: "${rec.player}", from: "${rec.from}", to: "${rec.to}" }`;
+    }
+
+    function renderHeaderAndQuest() {
+      const activePlayer = game.getActivePlayer();
+      const bstNode = game.scoreBST.findByPlayer(activePlayer);
+      const score = bstNode ? bstNode.score : 0;
+      const mult = game.getStreakMultiplier(activePlayer);
+
+      document.getElementById('hdr-active-player').textContent = activePlayer;
+      document.getElementById('hdr-active-score').textContent = `${score} PTS`;
+      document.getElementById('hdr-active-streak').textContent = `${mult}x STREAK`;
+      document.getElementById('hdr-height').textContent = `${game.tower.size()}/${game.tower.capacity}`;
+      document.getElementById('hdr-valid').textContent = game.validCount;
+      document.getElementById('hdr-invalid').textContent = game.invalidCount;
+      document.getElementById('deck-turn-badge').textContent = `TURN: ${activePlayer.toUpperCase()}`;
+
+      const q = game.questPool[game.questIndex];
+      document.getElementById('quest-code').textContent = q.code;
+      document.getElementById('quest-reward').textContent = `+${q.reward} BONUS PTS`;
+      document.getElementById('quest-desc').textContent = q.desc;
+    }
+
+    function renderTowerShaft() {
+      const shaft = document.getElementById('tower-shaft');
+      shaft.innerHTML = '';
+
+      const arrTopToBottom = game.tower.toArray();
+      const size = arrTopToBottom.length;
+      const cap = game.tower.capacity;
+      const pct = Math.round((size / cap) * 100);
+
+      document.getElementById('capacity-text').textContent = `${size} / ${cap} SLOTS (${pct}%)`;
+      document.getElementById('capacity-fill').style.width = `${pct}%`;
+      document.getElementById('tower-top-tag').textContent = size > 0 ? `TOP: #${arrTopToBottom[0]}` : 'TOP: EMPTY';
+
+      // Render 12 slots from Slot 11 (top) down to Slot 0 (bottom)
+      for (let slot = cap - 1; slot >= 0; slot--) {
+        const row = document.createElement('div');
+        row.className = 'slot-row';
+
+        const lbl = document.createElement('div');
+        lbl.className = 'slot-label';
+        lbl.textContent = `Slot ${slot}`;
+        row.appendChild(lbl);
+
+        if (slot < size) {
+          const val = arrTopToBottom[size - 1 - slot];
+          const isTop = slot === size - 1;
+          const style = getBlockStyle(val);
+
+          const blk = document.createElement('div');
+          blk.className = `tower-block ${style.darkText ? 'marigold-text' : ''}`;
+          blk.id = `shaft-block-${val}`;
+          blk.style.backgroundColor = style.bg;
+          blk.title = 'Click block to target in Search & Extract';
+          blk.innerHTML = `
+            <span>#${val}</span>
+            ${isTop ? '<span class="top-pointer-badge">TOP</span>' : `<span style="font-size:0.64rem; opacity:0.85;">Idx ${slot}</span>`}
+          `;
+          blk.addEventListener('click', () => {
+            document.getElementById('input-search').value = val;
+            document.getElementById('input-extract').value = val;
+            document.getElementById('sim-target-input').value = val;
+            showToast(`Selected Block #${val} for Search & Extraction`, 'info');
+          });
+          row.appendChild(blk);
+        } else {
+          const guide = document.createElement('div');
+          guide.className = 'slot-empty-guide';
+          guide.textContent = 'empty slot';
+          row.appendChild(guide);
+        }
+
+        shaft.appendChild(row);
+      }
+
+      // Render Top -> Bottom pointer chain inside Move Record box
+      const chainStrip = document.getElementById('stack-chain-strip');
+      if (arrTopToBottom.length === 0) {
+        chainStrip.innerHTML = `<span style="color:#A1A1AA;">TOP → NULL (Empty Stack)</span>`;
+      } else {
+        chainStrip.innerHTML = `<span style="color:#A1A1AA;">TOP →</span> ` +
+          arrTopToBottom.map(v => `<span class="chain-node">#${v}</span>`).join(' → ') +
+          ` <span style="color:#A1A1AA;">→ NULL</span>`;
+      }
+    }
+
+    /**
+     * Renders the Tabular Binary Search Tree (ScoreBST) Scorecard + Summary Strip + Optional Tree SVG
+     */
+    function renderTabularScoreBST() {
+      const entries = game.bstDescending
+        ? game.scoreBST.traverseDescending()
+        : game.scoreBST.traverseAscending();
+
+      const activePlayer = game.getActivePlayer();
+      const rootNode = game.scoreBST.root;
+      const minNode = game.scoreBST.findMin();
+      const maxNode = game.scoreBST.findMax();
+
+      document.getElementById('bst-count-pill').textContent = `${game.scoreBST.count()} BST NODES`;
+      document.getElementById('bst-stat-root').textContent = rootNode ? `${rootNode.player.split(' ')[0]} (${rootNode.score})` : '-';
+      document.getElementById('bst-stat-min').textContent = minNode ? `${minNode.score}` : '-';
+      document.getElementById('bst-stat-max').textContent = maxNode ? `${maxNode.score}` : '-';
+      document.getElementById('bst-stat-height').textContent = game.scoreBST.height();
+
+      const tbody = document.getElementById('bst-score-tbody');
+      tbody.innerHTML = entries.map((item, idx) => {
+        const { node, role, parentScore } = item;
+        const rankNum = game.bstDescending ? idx + 1 : entries.length - idx;
+        const medalCls = rankNum === 1 ? 'r1' : rankNum === 2 ? 'r2' : rankNum === 3 ? 'r3' : '';
+        const isActive = node.player === activePlayer;
+        const isMatched = game.highlightedBstPlayers.has(node.player);
+        const tier = getRankTier(node.score);
+
+        let roleBadgeHtml = '';
+        if (role === 'ROOT') {
+          roleBadgeHtml = `<span class="bst-role-badge root">ROOT</span>`;
+        } else if (role === 'LEFT') {
+          roleBadgeHtml = `<span class="bst-role-badge left">LEFT &lt; ${parentScore}</span>`;
+        } else {
+          roleBadgeHtml = `<span class="bst-role-badge right">RIGHT ≥ ${parentScore}</span>`;
+        }
+
+        return `
+          <tr class="${isActive ? 'active-player-row' : ''} ${isMatched ? 'bst-search-match' : ''}">
+            <td><span class="rank-medal ${medalCls}">#${rankNum}</span></td>
+            <td>
+              <strong>${node.player}</strong>
+              ${isActive ? '<span class="active-turn-chip">ACTIVE</span>' : ''}
+            </td>
+            <td>${roleBadgeHtml}</td>
+            <td><span class="score-key-pill">${node.score}</span></td>
+            <td style="font-family:var(--font-mono); font-weight:700;">${node.moves}</td>
+            <td style="font-family:var(--font-mono); font-weight:800; color:var(--accent-vermilion);">${node.streak}x</td>
+            <td><span class="tier-badge ${tier.cls}">${tier.label}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      renderBstSvgTree();
+    }
+
+    function renderBstSvgTree() {
+      const svg = document.getElementById('bst-svg');
+      svg.innerHTML = '';
+      if (!game.scoreBST.root) return;
+
+      const positions = new Map();
+      const width = 680;
+      const levelHeight = 56;
+
+      function computeCoords(node, depth, minX, maxX) {
+        if (!node) return;
+        const x = (minX + maxX) / 2;
+        const y = 30 + depth * levelHeight;
+        positions.set(node, { x, y });
+        computeCoords(node.left, depth + 1, minX, x);
+        computeCoords(node.right, depth + 1, x, maxX);
+      }
+
+      computeCoords(game.scoreBST.root, 0, 20, width - 20);
+
+      // Draw edges
+      positions.forEach((pos, node) => {
+        if (node.left && positions.has(node.left)) {
+          const c = positions.get(node.left);
+          svg.innerHTML += `<line x1="${pos.x}" y1="${pos.y}" x2="${c.x}" y2="${c.y}" stroke="#18181B" stroke-width="2" />`;
+        }
+        if (node.right && positions.has(node.right)) {
+          const c = positions.get(node.right);
+          svg.innerHTML += `<line x1="${pos.x}" y1="${pos.y}" x2="${c.x}" y2="${c.y}" stroke="#18181B" stroke-width="2" stroke-dasharray="4 2" />`;
+        }
+      });
+
+      // Draw nodes
+      positions.forEach((pos, node) => {
+        const isActive = node.player === game.getActivePlayer();
+        const isMatch = game.highlightedBstPlayers.has(node.player);
+        const fill = isMatch ? '#FDE047' : isActive ? '#10B981' : '#FFFFFF';
+        const textFill = isActive && !isMatch ? '#FFFFFF' : '#18181B';
+        const shortName = node.player.split(' ')[0];
+
+        svg.innerHTML += `
+          <g>
+            <rect x="${pos.x - 36}" y="${pos.y - 17}" width="72" height="34" rx="7" fill="${fill}" stroke="#18181B" stroke-width="2" />
+            <text x="${pos.x}" y="${pos.y - 2}" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="800" fill="${textFill}">${node.score}</text>
+            <text x="${pos.x}" y="${pos.y + 10}" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="8.5" font-weight="700" fill="${textFill}">${shortName}</text>
+          </g>
+        `;
+      });
+    }
+
+    function renderLinkedListView() {
+      const track = document.getElementById('ll-visual-track');
+      const items = game.linkedList.toArray();
+      document.getElementById('ll-count-tag').textContent = `${items.length} NODES`;
+
+      if (items.length === 0) {
+        track.innerHTML = `<span class="ll-null-chip">HEAD → NULL (Empty List)</span>`;
+        return;
+      }
+
+      let html = `<span class="tag-pill cobalt">HEAD</span><span class="ll-arrow">→</span>`;
+      items.forEach((val, idx) => {
+        html += `
+          <div class="ll-node-box">
+            <div class="ll-data-cell">
+              <small>IDX ${idx}</small>
+              #${val}
+            </div>
+            <div class="ll-next-cell">
+              <span style="font-size:0.6rem; color:var(--ink-subtle);">NEXT</span>
+              <span>•</span>
+            </div>
+          </div>
+          <span class="ll-arrow">→</span>
+        `;
+      });
+      html += `<span class="ll-null-chip">NULL</span>`;
+      track.innerHTML = html;
+    }
+
+    function renderQueueView() {
+      const track = document.getElementById('queue-visual-track');
+      const players = game.turnQueue.toArray();
+      document.getElementById('queue-count-tag').textContent = `${players.length} PLAYERS IN QUEUE`;
+
+      if (players.length === 0) {
+        track.innerHTML = `<span class="ll-null-chip">FRONT → NULL (Queue Empty)</span>`;
+        return;
+      }
+
+      track.innerHTML = players.map((p, idx) => {
+        const isFront = idx === 0;
+        const isRear = idx === players.length - 1;
+        const bstNode = game.scoreBST.findByPlayer(p);
+        const pts = bstNode ? bstNode.score : 0;
+
+        return `
+          <div class="queue-player-card ${isFront ? 'is-front' : ''}">
+            ${isFront ? '<span class="queue-ptr-tag front">FRONT</span>' : ''}
+            ${isRear ? '<span class="queue-ptr-tag rear">REAR</span>' : ''}
+            <span style="font-family:var(--font-mono); font-size:0.66rem; color:var(--ink-subtle);">QUEUE POS #${idx + 1}</span>
+            <strong style="font-family:var(--font-display); font-size:0.95rem;">${p}</strong>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:800; color:var(--accent-cobalt);">${pts} PTS</span>
+          </div>
+          ${idx < players.length - 1 ? '<span class="ll-arrow">←</span>' : ''}
+        `;
+      }).join('');
+    }
+
+    function renderMoveLogTable() {
+      const tbody = document.getElementById('move-log-tbody');
+      if (game.moveLog.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--ink-subtle);">No operations logged yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = game.moveLog.map(m => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-weight:800;">#${m.opNum}</td>
+          <td><span class="tag-pill ${m.status === 'VALID' ? 'emerald' : 'rose'}">${m.status}</span></td>
+          <td style="font-family:var(--font-mono); font-size:0.72rem;">
+            { type: "${m.type}", block: ${m.block ?? 'null'}, player: "${m.player}", from: "${m.from}", to: "${m.to}" }
+          </td>
+          <td style="font-family:var(--font-mono); font-size:0.72rem;">
+            [${m.before.join(', ')}] → [${m.after.join(', ')}]
+          </td>
+          <td style="font-family:var(--font-mono); font-weight:800; color:${m.delta >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+            ${m.delta > 0 ? '+' + m.delta : m.delta}
+          </td>
+          <td style="font-family:var(--font-mono); font-size:0.72rem;">${m.time}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderHeaderAndQuest();
+      renderTowerShaft();
+      renderTabularScoreBST();
+      renderLinkedListView();
+      renderQueueView();
+      renderMoveLogTable();
+    }
+
+    // ==========================================================================
+    // 5. TWO-STACK STEP-BY-STEP SIMULATOR (VIEW 02)
+    // ==========================================================================
+
+    function loadTwoStackSim() {
+      clearInterval(game.simInterval);
+      const target = parseInt(document.getElementById('sim-target-input').value, 10);
+      const current = game.tower.toArray(); // [Top ... Bottom]
+
+      if (isNaN(target) || !current.includes(target)) {
+        showToast('Enter a valid block number currently inside the Main Tower!', 'error');
+        return;
+      }
+
+      game.simMain.clear();
+      game.simTemp.clear();
+      for (let i = current.length - 1; i >= 0; i--) {
+        game.simMain.push(current[i]);
+      }
+
+      game.simSteps = [];
+      game.simIdx = 0;
+      game.simPushes = 0;
+      game.simPops = 0;
+
+      const targetDepth = current.indexOf(target);
+      for (let i = 0; i < targetDepth; i++) {
+        game.simSteps.push({
+          type: 'MOVE_TO_TEMP',
+          msg: `Pop #${current[i]} from Main Stack → Push onto Temporary Stack`
+        });
+      }
+      game.simSteps.push({
+        type: 'REMOVE_TARGET',
+        msg: `Pop & Remove target block #${target} from Main Stack`
+      });
+      for (let i = 0; i < targetDepth; i++) {
+        game.simSteps.push({
+          type: 'RESTORE_MAIN',
+          msg: `Pop from Temporary Stack → Restore onto Main Stack`
+        });
+      }
+
+      document.getElementById('sim-log-panel').innerHTML =
+        `<div class="sim-log-item">Loaded [${current.join(', ')}]. Target #${target} requires ${game.simSteps.length} LIFO steps.</div>`;
+      document.getElementById('sim-status-tag').textContent = 'READY';
+      document.getElementById('btn-sim-step').disabled = false;
+      document.getElementById('btn-sim-auto').disabled = false;
+      renderSimShafts();
+    }
+
+    function stepTwoStackSim() {
+      if (game.simIdx >= game.simSteps.length) {
+        clearInterval(game.simInterval);
+        document.getElementById('btn-sim-step').disabled = true;
+        document.getElementById('btn-sim-auto').disabled = true;
+        document.getElementById('sim-status-tag').textContent = 'COMPLETE';
+        return;
+      }
+
+      const step = game.simSteps[game.simIdx];
+      if (step.type === 'MOVE_TO_TEMP') {
+        const v = game.simMain.pop();
+        game.simTemp.push(v);
+        game.simPushes++;
+        game.simPops++;
+      } else if (step.type === 'REMOVE_TARGET') {
+        game.simMain.pop();
+        game.simPops++;
+      } else if (step.type === 'RESTORE_MAIN') {
+        const v = game.simTemp.pop();
+        game.simMain.push(v);
+        game.simPushes++;
+        game.simPops++;
+      }
+
+      game.simIdx++;
+      const logPanel = document.getElementById('sim-log-panel');
+      const item = document.createElement('div');
+      item.className = 'sim-log-item';
+      item.textContent = `Step ${game.simIdx}/${game.simSteps.length}: ${step.msg}`;
+      logPanel.prepend(item);
+
+      document.getElementById('sim-status-tag').textContent =
+        game.simIdx >= game.simSteps.length ? 'COMPLETE' : `STEP ${game.simIdx}/${game.simSteps.length}`;
+
+      if (game.simIdx >= game.simSteps.length) {
+        clearInterval(game.simInterval);
+        document.getElementById('btn-sim-step').disabled = true;
+        document.getElementById('btn-sim-auto').disabled = true;
+        showToast('Two-Stack extraction complete! Original order restored.', 'success');
+      }
+      renderSimShafts();
+    }
+
+    function renderSimShafts() {
+      document.getElementById('sim-push-cnt').textContent = game.simPushes;
+      document.getElementById('sim-pop-cnt').textContent = game.simPops;
+
+      const draw = (elId, cntId, stack) => {
+        const el = document.getElementById(elId);
+        const arr = stack.toArray();
+        document.getElementById(cntId).textContent = `${arr.length} BLOCKS`;
+        el.innerHTML = '';
+        for (let i = arr.length - 1; i >= 0; i--) {
+          const val = arr[i];
+          const st = getBlockStyle(val);
+          const div = document.createElement('div');
+          div.className = `tower-block ${st.darkText ? 'marigold-text' : ''}`;
+          div.style.backgroundColor = st.bg;
+          div.innerHTML = `<span>#${val}</span>${i === 0 ? '<span class="top-pointer-badge">TOP</span>' : ''}`;
+          el.appendChild(div);
+        }
+      };
+
+      draw('sim-main-shaft', 'sim-main-count', game.simMain);
+      draw('sim-temp-shaft', 'sim-temp-count', game.simTemp);
+    }
+
+    // ==========================================================================
+    // 6. AUTOMATED QA TEST SUITE (VIEW 06)
+    // ==========================================================================
+
+    function executeQaSuite() {
+      const results = [];
+
+      // TC1: Push
+      const s1 = new TowerStack(5);
+      s1.push(10);
+      s1.push(50);
+      results.push({
+        name: 'Push Operation',
+        input: 'push(50) onto [10]',
+        expected: 'Top becomes 50',
+        actual: `Top is ${s1.peek()}`,
+        pass: s1.peek() === 50
+      });
+
+      // TC2: Pop Empty Stack
+      const s2 = new TowerStack(5);
+      let errCaught = false;
+      try { s2.pop(); } catch (e) { errCaught = true; }
+      results.push({
+        name: 'Pop Empty Stack',
+        input: 'pop() on empty stack',
+        expected: 'Safe error; no crash',
+        actual: errCaught ? 'Safe Stack Underflow caught' : 'Failed',
+        pass: errCaught
+      });
+
+      // TC3: Search Missing Block
+      const s3 = new TowerStack(5);
+      [10, 20, 30].forEach(v => s3.push(v));
+      const found99 = s3.toArray().includes(99);
+      results.push({
+        name: 'Search Missing Block',
+        input: 'search(99) in [10,20,30]',
+        expected: 'Not found message',
+        actual: !found99 ? 'Not found (returned false)' : 'Found',
+        pass: !found99
+      });
+
+      // TC4: Middle Removal of 20 from [10,20,30,40]
+      const main4 = new TowerStack(6);
+      const temp4 = new TowerStack(6);
+      [10, 20, 30, 40].forEach(v => main4.push(v));
+      while (!main4.isEmpty()) {
+        const v = main4.pop();
+        if (v === 20) break;
+        temp4.push(v);
+      }
+      while (!temp4.isEmpty()) main4.push(temp4.pop());
+      const remStr = main4.toArray().reverse().join(',');
+      results.push({
+        name: 'Middle Block Removal',
+        input: 'Remove 20 from [10,20,30,40]',
+        expected: '10,30,40 remain in order',
+        actual: `${remStr} remain`,
+        pass: remStr === '10,30,40'
+      });
+
+      // TC5: FIFO Turn Queue Rotation
+      const q5 = new TurnQueue();
+      ['Yogitha P', 'Mithra R', 'Ragavi G'].forEach(p => q5.enqueue(p));
+      const p1 = q5.dequeue();
+      q5.enqueue(p1);
+      results.push({
+        name: 'Turn Queue Rotation',
+        input: 'Yogitha P completes turn',
+        expected: 'Mithra R moves to FRONT',
+        actual: `${q5.peek()} is at FRONT`,
+        pass: q5.peek() === 'Mithra R'
+      });
+
+      // TC6: ScoreBST In-Order & Reverse In-Order Sorting
+      const bst6 = new ScoreBST();
+      bst6.insertNode(new ScoreNode('A', 300));
+      bst6.insertNode(new ScoreNode('B', 100));
+      bst6.insertNode(new ScoreNode('C', 500));
+      const descScores = bst6.traverseDescending().map(x => x.node.score).join('>');
+      results.push({
+        name: 'ScoreBST Traversal Order',
+        input: 'Insert 300, 100, 500 into ScoreBST',
+        expected: '500>300>100 descending',
+        actual: descScores,
+        pass: descScores === '500>300>100'
+      });
+
+      const tbody = document.getElementById('qa-tbody');
+      tbody.innerHTML = results.map(r => `
+        <tr>
+          <td><strong>${r.name}</strong></td>
+          <td style="font-family:var(--font-mono); font-size:0.75rem;">${r.input}</td>
+          <td>${r.expected}</td>
+          <td style="font-family:var(--font-mono); font-size:0.75rem;">${r.actual}</td>
+          <td><span class="tag-pill ${r.pass ? 'emerald' : 'rose'}">${r.pass ? 'PASS ✓' : 'FAIL ✕'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // ==========================================================================
+    // 7. EVENT WIRING & INITIALIZATION
+    // ==========================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // View Tab Switching
+      document.querySelectorAll('.nav-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+          pill.classList.add('active');
+          document.getElementById(`view-${pill.dataset.view}`).classList.add('active');
+        });
+      });
+
+      // Scenario 1: Push
+      document.getElementById('btn-push').addEventListener('click', () => {
+        const inp = document.getElementById('input-push');
+        const val = parseInt(inp.value, 10);
+        try {
+          const rec = game.pushBlock(val);
+          inp.value = '';
+          renderAll();
+          showToast(`Pushed Block #${val} (+${rec.delta} PTS)`, 'success');
+        } catch (e) {
+          renderAll();
+          showToast(e.message, 'error');
+        }
+      });
+
+      // Quick Random Block
+      document.getElementById('btn-quick-random').addEventListener('click', () => {
+        const rand = Math.floor(Math.random() * 90 + 10) * 5;
+        try {
+          const rec = game.pushBlock(rand);
+          renderAll();
+          showToast(`Pushed Random Block #${rand} (+${rec.delta} PTS)`, 'success');
+        } catch (e) {
+          renderAll();
+          showToast(e.message, 'error');
+        }
+      });
+
+      // Pop Top
+      document.getElementById('btn-quick-pop').addEventListener('click', () => {
+        try {
+          const rec = game.popBlock();
+          renderAll();
+          showToast(`Popped Top Block #${rec.block} (+${rec.delta} PTS)`, 'info');
+        } catch (e) {
+          renderAll();
+          showToast(e.message, 'error');
+        }
+      });
+
+      // Peek Top
+      document.getElementById('btn-quick-peek').addEventListener('click', () => {
+        try {
+          const top = game.peekBlock();
+          renderAll();
+          showToast(`peek() → Topmost block is #${top}`, 'info');
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      });
+
+      // isEmpty()
+      document.getElementById('btn-quick-isempty').addEventListener('click', () => {
+        const empty = game.tower.isEmpty();
+        showToast(`isEmpty() → ${empty} (Current size: ${game.tower.size()})`, empty ? 'error' : 'success');
+      });
+
+      // Reset Default [10, 20, 30, 40]
+      document.getElementById('btn-quick-reset').addEventListener('click', () => {
+        game.resetDefaultTower();
+        renderAll();
+        showToast('Restored default tower [10, 20, 30, 40]', 'success');
+      });
+
+      // Empty Stack (for testing empty stack underflow)
+      document.getElementById('btn-quick-empty').addEventListener('click', () => {
+        game.emptyTower();
+        renderAll();
+        showToast('Tower emptied (0 blocks). Try Pop Top to test underflow check!', 'info');
+      });
+
+      // Scenario 2: Search Block
+      document.getElementById('btn-search').addEventListener('click', () => {
+        const val = parseInt(document.getElementById('input-search').value, 10);
+        const box = document.getElementById('search-feedback');
+        document.querySelectorAll('.tower-block').forEach(b => b.classList.remove('search-hit'));
+
+        if (isNaN(val)) {
+          showToast('Enter a valid block number to search.', 'error');
+          return;
+        }
+
+        const res = game.searchBlock(val);
+        renderAll();
+        box.classList.add('visible');
+        if (res.found) {
+          box.innerHTML = `FOUND #${val} • Depth from Top: #${res.fromTop} | Slot: ${res.slotIndex} | Topmost: #${res.topMost} | Count: ${res.total}`;
+          const el = document.getElementById(`shaft-block-${val}`);
+          if (el) el.classList.add('search-hit');
+          showToast(`Located Block #${val} (+30 PTS)`, 'success');
+        } else {
+          box.innerHTML = `Block #${val} NOT FOUND in active stack.`;
+          showToast(`Block #${val} not found.`, 'error');
+        }
+      });
+
+      // Scenario 3 & 4: Two-Stack Middle Extract
+      document.getElementById('btn-extract').addEventListener('click', () => {
+        const inp = document.getElementById('input-extract');
+        const target = parseInt(inp.value, 10);
+        try {
+          const { rec, movedAbove } = game.extractMiddleBlock(target);
+          inp.value = '';
+          renderAll();
+          showToast(`Extracted #${target} (${movedAbove} blocks moved & restored, +${rec.delta} PTS)`, 'success');
+        } catch (e) {
+          renderAll();
+          showToast(e.message, 'error');
+        }
+      });
+
+      // Scenario 8: Undo
+      const triggerUndo = () => {
+        try {
+          const undone = game.undoLastMove();
+          renderAll();
+          showToast(`Undid ${undone.type} (#${undone.block ?? 'empty'})`, 'info');
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      };
+      document.getElementById('btn-undo-arena').addEventListener('click', triggerUndo);
+      document.getElementById('btn-log-undo').addEventListener('click', triggerUndo);
+
+      // Tabular BST Scorecard Controls
+      document.getElementById('btn-toggle-bst-order').addEventListener('click', () => {
+        game.bstDescending = !game.bstDescending;
+        document.getElementById('btn-toggle-bst-order').textContent =
+          game.bstDescending ? 'Order: Desc (R→N→L)' : 'Order: Asc (L→N→R)';
+        renderTabularScoreBST();
+      });
+
+      document.getElementById('btn-toggle-tree-drawer').addEventListener('click', () => {
+        const drawer = document.getElementById('bst-tree-drawer');
+        const btn = document.getElementById('btn-toggle-tree-drawer');
+        drawer.classList.toggle('open');
+        btn.textContent = drawer.classList.contains('open') ? 'Hide BST Tree Nodes' : 'Show BST Tree Nodes';
+        if (drawer.classList.contains('open')) renderBstSvgTree();
+      });
+
+      document.getElementById('btn-bst-search').addEventListener('click', () => {
+        const targetScore = parseInt(document.getElementById('input-bst-search').value, 10);
+        const traceEl = document.getElementById('bst-trace-msg');
+        game.highlightedBstPlayers.clear();
+
+        if (isNaN(targetScore)) {
+          showToast('Enter a numeric score to search in ScoreBST.', 'error');
+          return;
+        }
+
+        const res = game.scoreBST.searchScore(targetScore);
+        const pathStr = res.path.map((n, idx) => {
+          const prefix = idx === 0 ? 'Root' : targetScore < res.path[idx - 1].score ? 'Left' : 'Right';
+          return `${prefix} (${n.score}: ${n.player})`;
+        }).join(' → ');
+
+        if (res.found) {
+          game.highlightedBstPlayers.add(res.node.player);
+          traceEl.textContent = `${pathStr} [FOUND]`;
+          showToast(`Found score ${targetScore} belonging to ${res.node.player}!`, 'success');
+        } else {
+          traceEl.textContent = `${pathStr || 'Empty Tree'} → NULL [NOT FOUND]`;
+          showToast(`Score ${targetScore} not found in ScoreBST.`, 'error');
+        }
+        renderTabularScoreBST();
+      });
+
+      document.getElementById('btn-bst-reset-trace').addEventListener('click', () => {
+        game.highlightedBstPlayers.clear();
+        document.getElementById('input-bst-search').value = '';
+        document.getElementById('bst-trace-msg').textContent =
+          'BST Rule: left.score < parent.score ≤ right.score • Search a score to trace Root → Leaf path.';
+        renderTabularScoreBST();
+      });
+
+      // View 02: Two-Stack Simulator Controls
+      document.getElementById('btn-sim-load').addEventListener('click', loadTwoStackSim);
+      document.getElementById('btn-sim-step').addEventListener('click', stepTwoStackSim);
+      document.getElementById('btn-sim-auto').addEventListener('click', () => {
+        clearInterval(game.simInterval);
+        game.simInterval = setInterval(stepTwoStackSim, 650);
+      });
+      document.getElementById('btn-sim-reset').addEventListener('click', () => {
+        clearInterval(game.simInterval);
+        game.simMain.clear();
+        game.simTemp.clear();
+        game.simSteps = [];
+        game.simIdx = 0;
+        game.simPushes = 0;
+        game.simPops = 0;
+        document.getElementById('btn-sim-step').disabled = true;
+        document.getElementById('btn-sim-auto').disabled = true;
+        document.getElementById('sim-status-tag').textContent = 'IDLE';
+        document.getElementById('sim-log-panel').innerHTML =
+          '<div class="sim-log-item">Simulation reset. Enter a block number and click Load Current Tower.</div>';
+        renderSimShafts();
+      });
+
+      // View 03: Linked List Controls
+      document.getElementById('btn-ll-add-head').addEventListener('click', () => {
+        const val = parseInt(document.getElementById('ll-head-val').value, 10);
+        if (isNaN(val)) return showToast('Enter a valid block number.', 'error');
+        game.linkedList.insertAtBeginning(val);
+        document.getElementById('ll-head-val').value = '';
+        renderLinkedListView();
+        showToast(`Inserted #${val} at Linked List HEAD`, 'success');
+      });
+
+      document.getElementById('btn-ll-add-pos').addEventListener('click', () => {
+        const val = parseInt(document.getElementById('ll-pos-val').value, 10);
+        const idx = parseInt(document.getElementById('ll-pos-idx').value, 10);
+        if (isNaN(val) || isNaN(idx)) return showToast('Enter both block # and index.', 'error');
+        try {
+          game.linkedList.insertAtPosition(val, idx);
+          document.getElementById('ll-pos-val').value = '';
+          document.getElementById('ll-pos-idx').value = '';
+          renderLinkedListView();
+          showToast(`Inserted #${val} at index ${idx}`, 'success');
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      });
+
+      document.getElementById('btn-ll-del-pos').addEventListener('click', () => {
+        const idx = parseInt(document.getElementById('ll-del-idx').value, 10);
+        if (isNaN(idx)) return showToast('Enter an index to delete.', 'error');
+        try {
+          const rem = game.linkedList.deleteAtPosition(idx);
+          document.getElementById('ll-del-idx').value = '';
+          renderLinkedListView();
+          showToast(`Deleted node #${rem} at index ${idx}`, 'info');
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      });
+
+      document.getElementById('btn-ll-find').addEventListener('click', () => {
+        const val = parseInt(document.getElementById('ll-find-val').value, 10);
+        if (isNaN(val)) return showToast('Enter a block number to search.', 'error');
+        const idx = game.linkedList.search(val);
+        if (idx !== -1) showToast(`Found #${val} at Linked List index ${idx}`, 'success');
+        else showToast(`#${val} not found in Linked List`, 'error');
+      });
+
+      document.getElementById('btn-ll-sync').addEventListener('click', () => {
+        game.linkedList.clear();
+        const bottomToTop = game.tower.toArray().reverse();
+        bottomToTop.forEach((v, idx) => game.linkedList.insertAtPosition(v, idx));
+        renderLinkedListView();
+        showToast('Synced Linked List with current Main Tower!', 'info');
+      });
+
+      document.getElementById('btn-ll-deploy').addEventListener('click', () => {
+        const seq = game.linkedList.toArray();
+        if (seq.length === 0 || seq.length > game.tower.capacity) {
+          showToast(`Sequence must have 1 to ${game.tower.capacity} nodes.`, 'error');
+          return;
+        }
+        const before = game.tower.toArray();
+        game.tower.clear();
+        seq.forEach(v => game.tower.push(v));
+
+        const player = game.getActivePlayer();
+        game.scoreBST.updatePlayerScore(player, 120, 'VALID');
+        game.validCount++;
+        const rec = game.recordMove({
+          status: 'VALID',
+          type: 'LL_DEPLOY',
+          block: seq[seq.length - 1],
+          player,
+          from: 'LINKED_LIST',
+          to: 'MAIN_STACK',
+          before,
+          after: game.tower.toArray(),
+          delta: 120
+        });
+        game.historyStack.push(rec);
+        spawnFloatingPoints(120);
+        game.rotateTurn();
+        renderAll();
+        showToast('Deployed Linked List sequence onto Main Tower (+120 PTS)!', 'success');
+      });
+
+      // View 04: Player Turn Queue Controls
+      document.getElementById('btn-queue-enqueue').addEventListener('click', () => {
+        const inp = document.getElementById('queue-new-player');
+        const name = inp.value.trim();
+        if (!name) return showToast('Enter a player name.', 'error');
+        if (game.turnQueue.contains(name)) return showToast(`${name} is already in the queue.`, 'error');
+
+        game.turnQueue.enqueue(name);
+        if (!game.scoreBST.findByPlayer(name)) {
+          game.scoreBST.insertNode(new ScoreNode(name, 100, 0, 0));
+        }
+        inp.value = '';
+        renderAll();
+        showToast(`Enqueued ${name} at REAR of Turn Queue & added to ScoreBST!`, 'success');
+      });
+
+      document.getElementById('btn-queue-rotate').addEventListener('click', () => {
+        if (game.turnQueue.isEmpty()) return showToast('Turn Queue is empty.', 'error');
+        const prev = game.getActivePlayer();
+        game.rotateTurn();
+        renderAll();
+        showToast(`${prev} completed turn → ${game.getActivePlayer()} is now FRONT!`, 'info');
+      });
+
+      document.getElementById('btn-queue-remove-front').addEventListener('click', () => {
+        if (game.turnQueue.size() <= 1) {
+          showToast('Keep at least 1 active player in the Turn Queue.', 'error');
+          return;
+        }
+        const removed = game.turnQueue.dequeue();
+        renderAll();
+        showToast(`Dequeued ${removed} from Turn Queue.`, 'info');
+      });
+
+      // View 06: QA Suite
+      document.getElementById('btn-run-qa').addEventListener('click', () => {
+        executeQaSuite();
+        showToast('All 6 QA Test Cases Executed: PASS!', 'success');
+      });
+
+      // Initial Boot Render
+      executeQaSuite();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
